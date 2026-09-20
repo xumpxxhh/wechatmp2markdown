@@ -35,8 +35,12 @@ func Start(addr string) {
 		mdString, saveImageBytes := format.Format(articleStruct)
 		if len(saveImageBytes) > 0 {
 			w.Header().Set("Content-Disposition", "attachment; filename="+title+".zip")
-			saveImageBytes[title] = []byte(mdString)
-			util.HttpDownloadZip(w, saveImageBytes)
+			zipFiles := make(map[string][]byte, len(saveImageBytes)+1)
+			for name, data := range saveImageBytes {
+				zipFiles[name] = data
+			}
+			zipFiles[title+".md"] = []byte(mdString)
+			util.HttpDownloadZip(w, zipFiles)
 		} else {
 			w.Header().Set("Content-Disposition", "attachment; filename="+title+".md")
 			w.Write([]byte(mdString))
@@ -64,7 +68,7 @@ var defHTML string = `
 			<strong>param 'url' is required.</strong> please put in a wechatmp URL and try again.
 		</li>
 		<li>
-			<strong>param 'image' is optional</strong>, value include: 'url' / 'save' / 'base64'(default)
+			<strong>param 'image' is optional</strong>, value include: 'url' / 'save'(default) / 'base64'
 		</li>
 		<li>
 			<strong>example:</strong> http://localhost:8964/?url=https://mp.weixin.qq.com/s?__biz=aaaa==&mid=1111&idx=2&sn=bbbb&chksm=cccc&scene=123&image=save

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 )
 
 func MergeMap(m1 map[string][]byte, m2 map[string][]byte) {
@@ -60,14 +61,26 @@ func MD5(content []byte) string {
 	return hex.EncodeToString(md5Bytes)
 }
 
-// 从图片src中解析出图片的扩展名
+// 从图片 src 中解析出图片的扩展名
 func ParseImageExtFromSrc(src string) string {
-	reg := regexp.MustCompile(`(wx_fmt=)([a-zA-Z]+)(&?)`)
+	reg := regexp.MustCompile(`(?i)(?:wx_fmt=)([a-zA-Z0-9]+)`)
 	matches := reg.FindStringSubmatch(src)
-	if len(matches) < 3 {
-		return ""
+	if len(matches) >= 2 {
+		ext := strings.ToLower(matches[1])
+		if ext == "jpeg" {
+			return "jpg"
+		}
+		return ext
 	}
-	return matches[2]
+	regPath := regexp.MustCompile(`(?i)/mmbiz_(jpg|jpeg|png|gif|webp)/`)
+	if m := regPath.FindStringSubmatch(src); len(m) >= 2 {
+		ext := strings.ToLower(m[1])
+		if ext == "jpeg" {
+			return "jpg"
+		}
+		return ext
+	}
+	return ""
 }
 
 // 判断路径是否存在
